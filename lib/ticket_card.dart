@@ -1,5 +1,3 @@
-library ticket_card;
-
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -41,11 +39,7 @@ class TicketCard extends StatelessWidget {
         child: child ?? SizedBox(),
       ),
       foregroundPainter: SeparatorPainter(
-        clipper: clipper,
-        fromTop: lineFromTop,
-        radius: lineRadius,
-        color: lineColor
-      ),
+          fromTop: lineFromTop, radius: lineRadius, color: lineColor),
       painter: ShadowPainter(clipper: clipper, decoration: decoration),
     );
   }
@@ -68,21 +62,28 @@ class SemiCircleClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     var path = Path();
     path
-      ..moveTo(0, 0)
+      ..moveTo(0, 20)
       ..lineTo(0, max(fromTop - radius, 0))
       ..arcToPoint(Offset(radius, fromTop),
           clockwise: true, radius: Radius.circular(radius))
       ..arcToPoint(Offset(0, fromTop + radius),
           clockwise: true, radius: Radius.circular(radius))
-      ..lineTo(0, size.height)
-      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height - radius)
+      ..cubicTo(0, size.height - radius, 0, size.height, radius, size.height)
+      ..lineTo(size.width - radius, size.height)
+      ..cubicTo(size.width - radius, size.height, size.width, size.height,
+          size.width, size.height - radius)
       ..lineTo(size.width, fromTop + radius)
       ..arcToPoint(Offset(size.width - radius, fromTop),
           clockwise: true, radius: Radius.circular(radius))
       ..arcToPoint(Offset(size.width, max(fromTop - radius, 0)),
           radius: Radius.circular(radius))
-      ..lineTo(size.width, 0)
+      ..lineTo(size.width, radius)
+      ..cubicTo(size.width, radius, size.width, 0, size.width - radius, 0)
+      ..lineTo(20, 0)
+      ..cubicTo(radius, 0, 0, 0, 0, radius)
       ..close();
+
     return path;
   }
 
@@ -112,6 +113,7 @@ class ShadowPainter extends CustomPainter {
         ..strokeWidth = _border.width ?? 0.5
         ..style = PaintingStyle.stroke;
       Path path = clipper.getClip(size);
+
       switch (_border.style) {
         case TicketBorderStyle.none:
           return;
@@ -122,6 +124,7 @@ class ShadowPainter extends CustomPainter {
               dashArray: CircularIntervalList<double>(<double>[5, 5]));
           break;
       }
+
       canvas.drawPath(path, paint);
     }
     // 绘制阴影
@@ -137,12 +140,10 @@ class ShadowPainter extends CustomPainter {
 /// 绘制票式卡片虚线
 class SeparatorPainter extends CustomPainter {
   SeparatorPainter({
-    this.clipper,
     this.fromTop,
     this.radius,
     this.color,
   });
-  final CustomClipper<Path> clipper;
 
   final double radius;
 
